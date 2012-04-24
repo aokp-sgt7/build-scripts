@@ -1,103 +1,80 @@
 #!/bin/bash
+# --------------------------------------- ------ ---- -- -
+# build script by eaut/cdesai of SGT7 ICS TE4M
+# modified for AOKP by stimpz0r
+# --------------------------------------- ------ ---- -- -
 #
-# Script to build AOKP for Galaxy Tab (with Kernel)
-# 2012 Chirayu Desai
-# modified by stimpz0r for use with AOKP
+# $VARIANT is hardset to userdebug for now, unless something changes for AOKP this will stay like that. 
 
-# Common defines
-txtrst='\e[0m'    # Color off
-txtred='\e[0;31m' # Red
-txtgrn='\e[0;32m' # Green
-txtylw='\e[0;33m' # Yellow
-txtblu='\e[0;34m' # Blue
+echo "-------------------------------------- --- -- -"
+echo ":: AOKP ICS for SGT7 GSM - build by stimpz0r ::"
+echo "- -- --- --------------------------------------"
+echo
 
-echo -e "${txtblu}-------------------------------------- --- -- -"
-echo -e "${txtblu}:: AOKP ICS for SGT7 GSM - build by stimpz0r ::"
-echo -e "${txtblu}- -- --- --------------------------------------"
-echo -e "\r\n ${txtrst}"
+# default
+DEVICE=p1
+# alternatives
+for i in p1 p1c p1l p1n; do
+  [ "$1" == "$i" ] && DEVICE="$i"
+done
 
-DEVICE=$1
-BUILDTYPE="$2"
-THREADS=`cat /proc/cpuinfo | grep processor | wc -l`
+# default
+VARIANT=userdebug
+# alternatives
+#for i in user userdebug eng; do
+#  [ "$2" == "$i" ] && VARIANT="$i"
+#done
 
-case $DEVICE in
-	clean)
-		make clobber && make installclean && make clean
-		cd kernel/samsung/p1
-		./build.sh clean
-		exit
-		;;
-	p1|P1)
-		P1_TARGET=p1
-		;;
-	p1l|P1L)
-		P1_TARGET=p1l
-		;;
-	p1n|P1N)
-		P1_TARGET=p1n
-		;;
-	*)
-		echo -e "${txtred}(!!) ERROR: choose a device"
-		echo -e "default : p1"
-		echo -e "supported buildtypes : p1 p1l p1n${txtrst}"
-		;;
+# VARIANT 	use
+# user 		limited access; suited for production
+# userdebug 	like "user" but with root access and debuggability; preferred for debugging
+# eng		development configuration with additional debugging tools
+#
+
+# --------------------------------------------
+
+# default
+TARGET="aokp_$DEVICE-$VARIANT"
+
+# exceptions
+case "$DEVICE" in
+  p1l|p1n)
+      TARGET="aokp_p1-$VARIANT"
+      OTHER="TARGET_KERNEL_CONFIG=cyanogenmod_"$DEVICE"_defconfig"
 esac
 
-case "$BUILDTYPE" in
-	clean)
-		make clobber && make installclean && make clean
-		cd kernel/samsung/p1
-		./build.sh clean
-		exit
-		;;
-#
-# -- disabling eng and user builds for now, left here incase they get used. - stimpz0r
-#  
-#	eng)
-#		LUNCH=aokp_galaxytab-eng
-#		;;
-	userdebug)
-		LUNCH=aokp_galaxytab-userdebug
-		;;
-#	user)
-#		LUNCH=aokp_galaxytab-user
-#		;;
-	*)
-		echo -e "${txtred}(!!) ERROR: choose a build type"
-		echo -e "default : userdebug"
-		echo -e "supported buildtypes: userdebug${txtrst}"
-		;;
+# --------------------------------------------
+
+THREADS=$(grep processor /proc/cpuinfo | wc -l)
+
+case "$1" in
+
+  distclean)
+      repo forall -c 'git clean -xdf'
+      ;&
+  clean)
+      make clobber
+      ( cd kernel/samsung/p1  ; make mrproper )
+      ( cd kernel/samsung/p1c ; make mrproper )
+      ;;
+  $DEVICE|"")
+      echo "(*) device  :: $DEVICE"
+      echo "(*) variant :: $VARIANT"
+      echo "(*) threads :: $THREADS"
+      time {
+        source build/envsetup.sh
+        lunch "$TARGET"
+        make -j$THREADS bacon $OTHER
+      }
+      ;;
+  *)
+      echo
+      echo "(!) usage ::" 
+      echo "       ${0##*/} [ <action> ]"
+      echo "       ${0##*/} [ <device> ]"
+      echo
+      echo "  <action> : clean|distclean|help"
+      echo "  <device> : p1|p1c|p1l|p1n       default=$DEVICE"
+#     echo "  <variant>: user|userdebug|eng   default=$VARIANT"
+      ;;
 esac
-
-if [ "$1" = "" ] ; then
-P1_TARGET=p1
-fi
-
-if [ "$2" = "" ] ; then
-LUNCH=aokp_galaxytab-userdebug
-fi
-
-START=$(date +%s)
-
-# Setup build environment and start the build
-echo -e "${txtblu}(::) building AOKP for SGT7 ..."
-echo -e "\r\n ${txtrst}"
-
-. build/envsetup.sh
-lunch $LUNCH
-
-# Kernel build
-cd kernel/samsung/p1
-./build.sh
-cd ../../..
-
-# Android build
-make -j$THREADS bacon
-
-END=$(date +%s)
-ELAPSED=$((END - START))
-E_MIN=$((ELAPSED / 60))
-E_SEC=$((ELAPSED - E_MIN * 60))
-printf "(::) elapsed: "
-[ $E_MIN != 0 ] && printf "%d min(s) " $E_MIN
-printf "%d sec(s)\n" $E_SEC
