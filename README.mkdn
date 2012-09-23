@@ -1,0 +1,46 @@
+[[ :: AOKP SGT7 build scripts :: ]] 
+===================================
+
+AOKP SGT7 website :: [AOKP SGT7](http://aokp.sgt7.net)
+
+features
+--------
+    * will build for all 4 devices - p1 / p1l / p1n / p1c (defaults to p1)
+    * after successful build, the script will create a CwM flashable zip file with the kernel
+    * the script will log the build into the logs/ directory with the format: aokp_sgt7-<DEVICE>-<YYYY_mm_dd-HH_MM>.log
+    * ... it wont, however, make you a coffee. ;p
+
+building
+--------
+once you have synced your build environment, you should see a "build.sh" in the root folder. this is the basis
+for the script - all other files are found in the "buildscripts/" directory.
+ 
+for a standard build you can use:
+
+    $ ./build.sh build [device]
+
+[device] is optional, it can be either p1 / p1l / p1n / p1c - it defaults to p1
+
+this will compile everything, using the correct "-j#" flag. it will package up your rom into a CwM flashable zip, and compile / package kernels in a CwM flashable zip as well.
+
+you can build a kernel without doing a full build (including the CwM flashable zip file) by simply using:
+
+    $ ./build.sh kernel [device]
+
+to clean the build environment, you can use the below 2 commands:
+
+    $ ./build.sh clean     - that will remove the entire out/ directory
+    $ ./build.sh distclean - that will clean out any files not on the github repo
+
+for usage details on the build script type:
+
+    $ ./build.sh 
+
+credits
+-------
+this build script would not be possible without the SGT7 TE4M's initial script, and
+teamhacksung for their kernel compiling / packaging code. be sure to check out their githubs:
+
+[TE4M Github](http://github.com/sgt7)
+
+[teamhacksung Github](http://github.com/teamhacksung)

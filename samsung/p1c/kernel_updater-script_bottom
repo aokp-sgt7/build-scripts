@@ -1,0 +1,39 @@
+ui_print("- --- ---------------------------------------------- --- -- -");
+ui_print("");
+ui_print("(::) mounting /system");
+show_progress(0.05, 1);
+mount("yaffs2", "MTD", "system", "/system");
+
+ui_print("(::) extracting kernel flashing tools...");
+show_progress(0.35, 5);
+package_extract_file("bml_over_mtd", "/tmp/bml_over_mtd");
+set_perm(0, 0, 0777, "/tmp/bml_over_mtd");
+package_extract_file("bml_over_mtd.sh", "/tmp/bml_over_mtd.sh");
+set_perm(0, 0, 0777, "/tmp/bml_over_mtd.sh");
+package_extract_file("flash_image", "/tmp/flash_image");
+set_perm(0, 0, 0777, "/tmp/flash_image");
+package_extract_file("erase_image", "/tmp/erase_image");
+set_perm(0, 0, 0777, "/tmp/erase_image");
+
+ui_print("(::) flashing the kernel...");
+show_progress(0.55, 5);
+
+assert(run_program("/tmp/erase_image", "boot"));
+assert(package_extract_file("boot.img", "/tmp/boot.img"),
+       run_program("/tmp/bml_over_mtd.sh", "recovery", "102", "reservoir", "2004", "/tmp/boot.img"),
+       delete("/tmp/boot.img"));
+
+ui_print("(::) copying kernel modules to /system/lib/modules");
+show_progress(0.40, 5);
+package_extract_dir("system", "/system");
+
+ui_print("(::) unmounting /system");
+show_progress(0.04, 1);
+unmount("/system");
+
+ui_print("");
+ui_print("- --- -------------------------------------------------------");
+ui_print("(::) AOKP SGT7 kernel has been sucessfully flashed!");
+ui_print("(::) you need to reboot your system for it to take effect!");
+ui_print("---------------------------------------------------- --- -- -");
+
