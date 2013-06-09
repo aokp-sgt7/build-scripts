@@ -1,5 +1,8 @@
 assert(getprop("ro.product.device") == "galaxytab" || getprop("ro.build.product") == "galaxytab" || 
-       getprop("ro.product.device") == "GT-P1000" || getprop("ro.build.product") == "GT-P1000");
+       getprop("ro.product.device") == "GT-P1000" || getprop("ro.build.product") == "GT-P1000") ||
+       getprop("ro.product.device") == "GT-P1000L" || getprop("ro.build.product") == "GT-P1000L") ||
+       getprop("ro.product.device") == "GT-P1000N" || getprop("ro.build.product") == "GT-P1000N");
+       getprop("ro.product.device") == "p1" || getprop("ro.build.product") == "p1l") || getprop("ro.build.product") == "p1n");
 
 ui_print("");
 ui_print("            ,,cSS$");
@@ -18,6 +21,6 @@ ui_print(";;[ . . A O K P - S G T 7 ];;; ,c$$$$*`,cS$$Sc,*$$$$$*,c$$$c,");
 ui_print(";;[ ;;;;;;;;; by stimpz0r ];;; $$; ;;; $$ ;; $$  $$ ;;;;;;`$$");
 ui_print(";;[                       ];;;,`*$$$Sc,*$,,,,$$  $$ ;;;;;; $$");
 ui_print(";;[      K  E  R  N  E  L ];;;''    ;$$ `````$$  $$ ;;;;;; $$");
-ui_print(";;[        GSM (GT-P1000) ];;;,`*$$$$*`ccS$$$*`, $$ ;;;;;; $$");
+ui_print(";;[    GSM (GT-P1000/L/N) ];;;,`*$$$$*`ccS$$$*`, $$ ;;;;;; $$");
 ui_print("- --- ---------------------------------------------------- *$");
 

@@ -6,6 +6,8 @@ mount("yaffs2", "MTD", "system", "/system");
 
 ui_print("(::) extracting kernel flashing tools...");
 show_progress(0.35, 5);
+package_extract_file("p1ln.sh", "/tmp/p1ln.sh");
+set_perm(0, 0, 0777, "/tmp/p1ln.sh");
 package_extract_file("bml_over_mtd", "/tmp/bml_over_mtd");
 set_perm(0, 0, 0777, "/tmp/bml_over_mtd");
 package_extract_file("bml_over_mtd.sh", "/tmp/bml_over_mtd.sh");
@@ -17,9 +19,11 @@ set_perm(0, 0, 0777, "/tmp/erase_image");
 
 ui_print("(::) flashing the kernel...");
 show_progress(0.55, 5);
-
-assert(run_program("/tmp/erase_image", "boot"));
 assert(package_extract_file("boot.img", "/tmp/boot.img"),
+assert(package_extract_file("boot_p1ln.img", "/tmp/boot_p1ln.img"),
+
+assert(run_program("/tmp/p1ln.sh") == 0);
+assert(run_program("/tmp/erase_image", "boot"));
        run_program("/tmp/bml_over_mtd.sh", "boot", "72", "reservoir", "2004", "/tmp/boot.img"),
        delete("/tmp/boot.img"));
 			
