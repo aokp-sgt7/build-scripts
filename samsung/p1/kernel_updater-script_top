@@ -1,9 +1,10 @@
-assert(getprop("ro.product.device") == "galaxytab" || getprop("ro.build.product") == "galaxytab" || 
-       getprop("ro.product.device") == "GT-P1000" || getprop("ro.build.product") == "GT-P1000") ||
-       getprop("ro.product.device") == "GT-P1000L" || getprop("ro.build.product") == "GT-P1000L") ||
-       getprop("ro.product.device") == "GT-P1000N" || getprop("ro.build.product") == "GT-P1000N");
-       getprop("ro.product.device") == "p1" || getprop("ro.build.product") == "p1l") || getprop("ro.build.product") == "p1n");
-
+assert(getprop("ro.product.device") == "GT-P1000" || getprop("ro.build.product") == "GT-P1000" || 
+       getprop("ro.product.device") == "GT-P1000L" || getprop("ro.build.product") == "GT-P1000L" || 
+       getprop("ro.product.device") == "GT-P1000N" || getprop("ro.build.product") == "GT-P1000N" || 
+       getprop("ro.product.device") == "galaxytab" || getprop("ro.build.product") == "galaxytab" || 
+       getprop("ro.product.device") == "p1" || getprop("ro.build.product") == "p1" || 
+       getprop("ro.product.device") == "p1l" || getprop("ro.build.product") == "p1l" || 
+       getprop("ro.product.device") == "p1n" || getprop("ro.build.product") == "p1n");
 ui_print("");
 ui_print("            ,,cSS$");
 ui_print("            $$$$$$    ,,ccc,,    ,,cSS$   ,c$$$$SScc,");
@@ -23,4 +24,3 @@ ui_print(";;[                       ];;;,`*$$$Sc,*$,,,,$$  $$ ;;;;;; $$");
 ui_print(";;[      K  E  R  N  E  L ];;;''    ;$$ `````$$  $$ ;;;;;; $$");
 ui_print(";;[    GSM (GT-P1000/L/N) ];;;,`*$$$$*`ccS$$$*`, $$ ;;;;;; $$");
 ui_print("- --- ---------------------------------------------------- *$");
-

@@ -45,6 +45,7 @@ echo -e "${CL_BLU}- --- ---------------------------------------------------- ${C
 echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_MAG} buildscript adapted from SGT7 ICS TE4M's CM9 build"
 echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_MAG} kernel packaging / rebuild from teamhacksung"
 echo -e "${CL_BLU}---------------------------------------------------- --- -- -"
+echo -e "${CL_RST}"
 
 # --------------------------------------------
 
@@ -97,7 +98,10 @@ build_kernel()
     if [ ! -e out/host/linux-x86/framework/signapk.jar ]; then
         make -j${THREADS} signapk
     fi
-    create_kernel_zip
+    create_kernel_zip $DEVICE $DEVICE
+    if [ $DEVICE == "p1" ]; then
+        create_kernel_zip $DEVICE p1ln
+    fi            
 	END=$(date +%s)
 	ELAPSED=$((END - START))
 	E_MIN=$((ELAPSED / 60))
@@ -113,20 +117,27 @@ create_kernel_zip()
     if [ -e out/target/product/${DEVICE}/boot.img ]; then
     if [ -e ${TOP}/buildscripts/samsung/${DEVICE}/kernel_updater-script_top ]; then
 
-        echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} creating kernel zip for${CL_MAG} ${DEVICE}"
-        cd out/target/product/${DEVICE}
+        DEVICE_TYPE=$1
+        DEVICE_NAME=$2
+
+        echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} creating kernel zip for${CL_MAG} ${DEVICE_NAME}"
+        cd out/target/product/${DEVICE_TYPE}
 
         rm -rf kernel_zip
-        rm -f aokp_sgt7-*_kernel-*.zip
+        rm -f aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-*.zip
 
         mkdir -p kernel_zip/system/lib/modules
         mkdir -p kernel_zip/META-INF/com/google/android
 
-        echo -e "(::) KERNEL :: copying boot.img ${CL_BLU}..."
-        cp boot.img kernel_zip/
-        if [ ${DEVICE} == "p1" ]; then
-            cp boot_p1ln.img kernel_zip/
-            cp p1ln.sh kernel_zip/
+        echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} copying boot.img ${CL_BLU}..."
+        if [ $DEVICE_NAME == "p1ln" ]; then
+            if [ -e boot_p1ln.img ]; then
+                cp boot_p1ln.img kernel_zip/boot.img
+            fi
+        else
+            if [ -e boot.img ]; then
+                cp boot.img kernel_zip/
+            fi
         fi
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} copying kernel flashing tools ${CL_BLU}..."
         cp -R ${TOP}/buildscripts/samsung/common/* kernel_zip/
@@ -135,31 +146,27 @@ create_kernel_zip()
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} copying update-binary ${CL_BLU}..."
         cp obj/EXECUTABLES/updater_intermediates/updater kernel_zip/META-INF/com/google/android/update-binary
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} copying updater-script ${CL_BLU}..."
-        cat ${TOP}/buildscripts/samsung/${DEVICE}/kernel_updater-script_top > kernel_zip/META-INF/com/google/android/updater-script
-        if [ ${DEVICE} -eq "p1" ]; then
-            echo "ui_print(\"(::) device            :: p1ln (GSM - GT-P1000/L/N)\");" >> kernel_zip/META-INF/com/google/android/updater-script
-        else
-            echo "ui_print(\"(::) device            :: ${DEVICE}\");" >> kernel_zip/META-INF/com/google/android/updater-script
-        fi
+        cat ${TOP}/buildscripts/samsung/${DEVICE_TYPE}/kernel_updater-script_top > kernel_zip/META-INF/com/google/android/updater-script
+        echo "ui_print(\"(::) device            :: ${DEVICE_NAME}\");" >> kernel_zip/META-INF/com/google/android/updater-script
         echo "ui_print(\"(::) android version   :: ${VERSION}\");" >> kernel_zip/META-INF/com/google/android/updater-script
         echo "ui_print(\"(::) kernel build date :: $(date +%d/%m/%Y)\");" >> kernel_zip/META-INF/com/google/android/updater-script
-        cat ${TOP}/buildscripts/samsung/${DEVICE}/kernel_updater-script_bottom >> kernel_zip/META-INF/com/google/android/updater-script
+        cat ${TOP}/buildscripts/samsung/${DEVICE_TYPE}/kernel_updater-script_bottom >> kernel_zip/META-INF/com/google/android/updater-script
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} zipping recovery flashable package ${CL_BLU}..."
         cd kernel_zip
-        zip -qr ../aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip ./
-        cd ${TOP}/out/target/product/${DEVICE}
+        zip -qr ../aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip ./
+        cd ${TOP}/out/target/product/${DEVICE_TYPE}
 
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} signing package ${CL_BLU}..."
-        java -jar ${TOP}/out/host/linux-x86/framework/signapk.jar ${TOP}/build/target/product/security/testkey.x509.pem ${TOP}/build/target/product/security/testkey.pk8 aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d)-signed.zip
-        rm aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip
-        mv aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d)-signed.zip aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip
-        echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} package complete ${CL_BLU}::${CL_MAG} out/target/product/${DEVICE}/aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip"
+        java -jar ${TOP}/out/host/linux-x86/framework/signapk.jar -w ${TOP}/build/target/product/security/testkey.x509.pem ${TOP}/build/target/product/security/testkey.pk8 aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d)-signed.zip
+        rm aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip
+        mv aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d)-signed.zip aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip
+        echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} package complete ${CL_BLU}::${CL_MAG} out/target/product/${DEVICE_TYPE}/aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip"
         echo -e "${CL_RST}"
-        md5sum aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip
+        md5sum aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip
         cd ${TOP}
 
     else
-        echo -e "${CL_BLU}(${CL_RED}!!${CL_BLU})${CL_RED} KERNEL ${CL_BLU}::${CL_CYN} no instructions to create${CL_MAG} out/target/product/${DEVICE}/aokp_sgt7-${DEVICE}_${VERSION}_kernel-$(date +%Y%m%d).zip ${CL_BLU}...${CL_CYN} skipping."
+        echo -e "${CL_BLU}(${CL_RED}!!${CL_BLU})${CL_RED} KERNEL ${CL_BLU}::${CL_CYN} no instructions to create${CL_MAG} out/target/product/${DEVICE_TYPE}/aokp_sgt7-${DEVICE_NAME}_${VERSION}_kernel-$(date +%Y%m%d).zip ${CL_BLU}...${CL_CYN} skipping."
         echo -e "${CL_RST}"
     fi
     fi
@@ -191,6 +198,18 @@ case "$1" in
 		lunch "$TARGET"
 		build_kernel
 	fi
+	;;
+  kernelzip)
+	for i in p1 p1c; do
+		[ "$2" == "$i" ] && DEVICE="$i"
+	done
+	TARGET="aokp_$DEVICE-$VARIANT"
+	source build/envsetup.sh
+	lunch "$TARGET"
+    create_kernel_zip $DEVICE $DEVICE
+    if [ $DEVICE == "p1" ]; then
+        create_kernel_zip $DEVICE p1ln
+    fi            
 	;;
    build)
 	if [ "$2" == "all" ]; then
