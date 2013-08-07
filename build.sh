@@ -60,10 +60,13 @@ do_build()
 		STARTBUILD=`date +"%H:%M @ %d/%m/%Y"`
 		echo
 		echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} starting build ${CL_BLU}::${CL_MAG} $STARTBUILD"
-        echo -e "${CL_RST}"
+		echo -e "${CL_RST}"
 		mka bacon | tee -a logs/aokp_sgt7-$DEVICE_$VERSION-`date +"%Y_%m_%d-%H_%M"`.log
-		create_kernel_zip
-		ENDBUILD=`date +"%H:%M @ %d/%m/%Y"`
+		create_kernel_zip $DEVICE $DEVICE
+		if [ $DEVICE == "p1" ]; then
+			create_kernel_zip $DEVICE p1ln
+		fi            
+                ENDBUILD=`date +"%H:%M @ %d/%m/%Y"`
 		echo
 		echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} build completed ${CL_BLU}::${CL_MAG} $ENDBUILD"
 		END=$(date +%s)
@@ -82,6 +85,7 @@ build_kernel()
 	START=$(date +%s)
 	echo	
 	echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} building bootimage for${CL_MAG} $DEVICE ${CL_BLU}..."
+	echo -e "${CL_RST}"
 	echo
     rm -rf out/target/product/${DEVICE}/obj/KERNEL_OBJ
     rm out/target/product/${DEVICE}/kernel
@@ -147,7 +151,11 @@ create_kernel_zip()
         cp obj/EXECUTABLES/updater_intermediates/updater kernel_zip/META-INF/com/google/android/update-binary
         echo -e "${CL_BLU}(${CL_CYN}::${CL_BLU})${CL_CYN} KERNEL ${CL_BLU}::${CL_CYN} copying updater-script ${CL_BLU}..."
         cat ${TOP}/buildscripts/samsung/${DEVICE_TYPE}/kernel_updater-script_top > kernel_zip/META-INF/com/google/android/updater-script
-        echo "ui_print(\"(::) device            :: ${DEVICE_NAME}\");" >> kernel_zip/META-INF/com/google/android/updater-script
+        if [ $DEVICE_NAME == "p1ln" ]; then
+            echo "ui_print(\"(::) device            :: p1ln (GT-P1000L / GT-P1000N)\");" >> kernel_zip/META-INF/com/google/android/updater-script
+        else
+            echo "ui_print(\"(::) device            :: ${DEVICE_NAME}\");" >> kernel_zip/META-INF/com/google/android/updater-script
+        fi
         echo "ui_print(\"(::) android version   :: ${VERSION}\");" >> kernel_zip/META-INF/com/google/android/updater-script
         echo "ui_print(\"(::) kernel build date :: $(date +%d/%m/%Y)\");" >> kernel_zip/META-INF/com/google/android/updater-script
         cat ${TOP}/buildscripts/samsung/${DEVICE_TYPE}/kernel_updater-script_bottom >> kernel_zip/META-INF/com/google/android/updater-script
