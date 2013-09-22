@@ -15,7 +15,7 @@ CL_RST="\033[0m"
 
 # default settings ::
 DEVICE=p1
-VERSION=jb-mr1
+VERSION=jb-mr2
 VARIANT=userdebug
 TOP=${PWD}
 THREADS=$(grep processor /proc/cpuinfo | wc -l)
